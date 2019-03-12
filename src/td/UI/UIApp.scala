@@ -47,7 +47,7 @@ object UIApp extends JFXApp {
       buttonPane.children += Button5
       val split = new SplitPane
       split.items ++= List(buttonPane, gameWindow)
-      split.dividerPositions = 0.5
+      split.dividerPositions = 0.25
       
       
       val rootPane = new BorderPane

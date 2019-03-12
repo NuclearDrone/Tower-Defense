@@ -1,0 +1,2 @@
+UIApp ja ScalaFX lisätty, suunnitelmassa muutos swingistä scalafx käyttöön. Pelin käyttöliittymä hahmoteltu.
+Käytetty työmäärä n. 5 tuntia. Projektisuunnitelman mukaan noin aikataulussa, tällä viikolla tarkoitus käyttää enemmän aikaa.
