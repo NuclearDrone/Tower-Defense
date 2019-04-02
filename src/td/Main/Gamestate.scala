@@ -8,12 +8,13 @@ class Gamestate {
   private var playerHealth = 100
   private var level = 1
   
-  def setScore(a: Int) = score = a
-  def setPlayerHealth(a: Int) = playerHealth = a
-  def setLevel(a: Int) = level = a
-  def setField(a: Field) = field = a
+  def setScore(a: Int): Unit = score = a
+  def setPlayerHealth(a: Int): Unit = playerHealth = a
+  def setLevel(a: Int): Unit = level = a
+  def setField(a: Field): Unit = field = a
+  def getField: Field = field
   
-  override def toString = {
+  override def toString: String = {
     "Score: " + score + " Player Health: " + playerHealth + " Level: " + level
   }
 }

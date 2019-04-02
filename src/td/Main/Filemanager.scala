@@ -60,7 +60,7 @@ class Filemanager {
   }
   
   def newGame = {
-    
+    this.loadGame(new File("data/DefaultField.txt"))
   }
   
 }

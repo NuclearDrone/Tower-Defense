@@ -33,12 +33,12 @@ import scalafx.scene.text.Text
 import scalafx.scene.text.Font
 import scalafx.geometry.Pos
 import scalafx.scene.layout.Border
+import scala.collection.mutable.Buffer
 
 object UIApp extends JFXApp {
   
+  private var game = new Filemanager().newGame
   
-  
-    
   stage = new PrimaryStage {
     title = "Tornipuolustus"
     scene = new Scene(800, 600) {
@@ -56,14 +56,14 @@ object UIApp extends JFXApp {
       }
       newGame.onAction = new EventHandler[ActionEvent] {
         override def handle(event: ActionEvent) {
-          new Filemanager().newGame
+          game = new Filemanager().newGame
         }
       }
       openGame.onAction = new EventHandler[ActionEvent] {
         override def handle(event: ActionEvent) {
           val file = fileChooser.showOpenDialog(stage)
           if (file != null) {
-            new Filemanager().loadGame(file)
+            game = new Filemanager().loadGame(file)
           }
         }
       }
@@ -103,14 +103,25 @@ object UIApp extends JFXApp {
       rootPane.top = menuBar
       rootPane.left = buttonPane
       rootPane.center = gameWindow
-      gameWindow.getChildren.addAll(new Tile(new TowerSquare))
+      var tiles = Buffer[Tile]()
+      for {x <- 0 until game.getField.rows
+           y <- 0 until game.getField.cols} {
+         val tile = new Tile(game.getField.field(x)(y))
+         tile.translateX = 25 + y*50
+         tile.translateY = 25 + x*50
+         tiles += tile
+      }
+      val thing = new Tile(new TowerSquare)
+      thing.translateX = 25
+      thing.translateY = 25
+      tiles.foreach(gameWindow.getChildren.addAll(_))
       root = rootPane
     }
   }
   private class Tile(tileType: Square) extends StackPane {
     style =  "" +
     "-fx-background-color: " + tileType.color + ";" +
-    "-fx-border-color: black;" +
+    "-fx-border-color: " + tileType.color + ";" +
     "-fx-border-width: 1;" +
     "-fx-border-radius: 6;" +
     "-fx-padding: 10;"

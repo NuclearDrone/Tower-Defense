@@ -1,11 +1,11 @@
 package td
 import scalafx.scene.paint.Color
 
-class Field(rows: Int = 10, cols: Int = 10, data: Array[Array[Square]]) {
+class Field(r: Int = 10, c: Int = 10, data: Array[Array[Square]]) {
   
   val field = data
-  
-  
+  val rows = r
+  val cols = c
 }
 
 trait Square {
