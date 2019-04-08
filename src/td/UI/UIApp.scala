@@ -34,10 +34,17 @@ import scalafx.scene.text.Font
 import scalafx.geometry.Pos
 import scalafx.scene.layout.Border
 import scala.collection.mutable.Buffer
+import scalafx.scene.image.ImageView
+import scalafx.scene.image.Image
+import scalafx.scene.input.MouseEvent
+import scalafx.animation.AnimationTimer
 
 object UIApp extends JFXApp {
   
+  case class Enemy(x: Double, y: Double)
+  private var enemies = List[Enemy]()
   private var game = new Filemanager().newGame
+  private val factor = 25
   
   stage = new PrimaryStage {
     title = "Tornipuolustus"
@@ -99,6 +106,24 @@ object UIApp extends JFXApp {
       buttonPane.children += Button5
       buttonPane.setBackground(new Background(Array(new BackgroundFill(Color.Gray, CornerRadii.Empty, Insets.Empty))))
       
+      val canvas = new Canvas(600, 600)
+      gameWindow.getChildren.addAll(canvas)
+      val gc = canvas.graphicsContext2D
+      canvas.onMouseClicked = (me: MouseEvent) => {
+        enemies ::= new Enemy(me.x, me.y)
+        println("" + me.x + " " + me.y )
+      }
+      canvas.width.bind(gameWindow.width)
+      canvas.height.bind(gameWindow.height)
+      val timer = AnimationTimer { time =>
+        gc.fill = Color.Black
+        gc.fill = Color.Brown
+        for (i <- enemies) {
+          gc.fillRect(i.x, i.y, factor, factor)
+        }
+      }
+      timer.start()
+      
       val rootPane = new BorderPane
       rootPane.top = menuBar
       rootPane.left = buttonPane
@@ -107,15 +132,14 @@ object UIApp extends JFXApp {
       for {x <- 0 until game.getField.rows
            y <- 0 until game.getField.cols} {
          val tile = new Tile(game.getField.field(x)(y))
-         tile.translateX = 25 + y*50
-         tile.translateY = 25 + x*50
+         tile.translateX = factor + y*factor*2
+         tile.translateY = factor + x*factor*2
          tiles += tile
       }
-      val thing = new Tile(new TowerSquare)
-      thing.translateX = 25
-      thing.translateY = 25
       tiles.foreach(gameWindow.getChildren.addAll(_))
+      canvas.toFront()
       root = rootPane
+      
     }
   }
   private class Tile(tileType: Square) extends StackPane {
@@ -128,7 +152,12 @@ object UIApp extends JFXApp {
     alignment = Pos.CENTER
     val text = new Text(tileType.letter)
     text.setFont(Font.font(30))
-    this.children.addAll(text)
+    val image = new ImageView(new Image( new FileInputStream(tileType.letter match {
+      case "P" => "data/Ground_01.png"
+      case "T" => "data/Grass_01.png"
+      case "B" => "data/Wall_01.png"
+    }), factor*2, factor*2, true, true))
+    this.children.addAll(text, image)
   }
   
   
