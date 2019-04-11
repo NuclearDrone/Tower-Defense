@@ -26,7 +26,6 @@ class Filemanager {
             game.setScore(gameScore.toInt)
             game.setPlayerHealth(gameHealth.toInt)
             game.setLevel(gameLevel.toInt)
-            println(game)
             
           case "FIELD:" =>
             def squareType(in: String): Square = {
