@@ -1,5 +1,5 @@
 package td.Main
-
-class Tower(x: Double, y: Double, name: String) {
+import td._
+class Tower(val x: Double, val y: Double, val name: String) {
   
 }

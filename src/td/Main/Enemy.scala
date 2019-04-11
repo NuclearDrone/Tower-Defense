@@ -1,5 +1,5 @@
 package td.Main
 
-class Enemy(x: Double, y: Double) {
+class Enemy(var x: Double, var y: Double) {
   
 }

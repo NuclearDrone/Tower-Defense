@@ -1,6 +1,7 @@
 package td.UI
 
 import td._
+import td.Main._
 import java.io._
 import scalafx.Includes._
 import scalafx.application.JFXApp
@@ -43,8 +44,6 @@ import scalafx.scene.control.ToggleGroup
 
 object UIApp extends JFXApp {
   
-  case class Enemy(x: Double, y: Double)
-  case class Tower(x: Double, y: Double, name: String)
   private var enemies = List[Enemy]()
   private var towers = List[Tower]()
   private var game = new Filemanager().newGame
