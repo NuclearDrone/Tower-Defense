@@ -4,7 +4,7 @@ import java.io._
 import td._
 class Filemanager {
   
-  def saveGame(file: File) = {
+  def saveGame(file: File, game: Gamestate) = {
     
   }
   
@@ -43,15 +43,35 @@ class Filemanager {
               data(x) = input.readLine().split(" ").map(squareType)
             }
             game.setField(new Field(rows.toInt, cols.toInt, data))
+          
+          case "TOWERS:" =>
+            var towers = List[Array[(Int, Int)]]()
+            var tower1 = input.readLine().drop(2).trim
+            if (tower1.nonEmpty) towers = towers :+ tower1.split(" ").map( x => (x.head.toInt ,x.last.toInt ))
+            val tower2 = input.readLine().drop(2).trim
+            if (tower2.nonEmpty) towers = towers :+ tower2.split(" ").map( x => (x.head.toInt ,x.last.toInt ))
+            val tower3 = input.readLine().drop(2).trim
+            if (tower3.nonEmpty) towers = towers :+ tower3.split(" ").map( x => (x.head.toInt ,x.last.toInt ))
+            val tower4 = input.readLine().drop(2).trim
+            if (tower4.nonEmpty) towers = towers :+ tower4.split(" ").map( x => (x.head.toInt ,x.last.toInt ))
+            println(towers)
+            var i = 1
+            for (x <- towers) {
+              for(y <- x) {
+                game.getField.field(y._1-48)(y._2-48).setTower(i)
+              }
+              i += 1
+            }
             
           case "END" => fileEnded = true
-          case x => println("wtf happened")
+          case x => throw new IOException("Incorrect file syntax")
           
         }
       }
       
     } catch {
-      case e: IOException => println("File reading error")
+      case e: IOException => println("IOException caught: " + e)
+      //case x: Throwable => println("Exception caught: " + x)
     } finally {
       input.close()
     }

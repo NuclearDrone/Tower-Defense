@@ -7,4 +7,9 @@ B T T T T T T T T B
 P P P P P P P P P P
 B T T T T T T T T B
 B B B B B B B B B B
+TOWERS:
+1: 1,1 1,2
+2:
+3: 3,8
+4:
 END

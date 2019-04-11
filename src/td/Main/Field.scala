@@ -9,20 +9,31 @@ class Field(r: Int = 10, c: Int = 10, data: Array[Array[Square]]) {
 }
 
 trait Square {
+  def tower: Int
+  def setTower(x: Int):Boolean
   def letter: String
   def color:String
 }
 
 class TowerSquare extends Square {
+  var tower = 0
+  def setTower(x: Int): Boolean = {
+    tower = x
+    true
+  }
   def letter = "T"
   def color = "blue"
 }
 
 class PathSquare extends Square {
+  val tower = 0
+  def setTower(x: Int) = false
   def letter = "P"
   def color = "brown"
 }
 class BlockedSquare extends Square {
+  val tower = 0
+  def setTower(x: Int) = false
   def letter = "B"
   def color = "gray"
 }
