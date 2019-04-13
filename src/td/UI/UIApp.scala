@@ -46,11 +46,10 @@ import scalafx.application.Platform
 import scalafx.stage.Stage
 
 object UIApp extends JFXApp {
-  
-  private var game = new Filemanager().newGame
+
   private val factor = 25
-  
-  
+  private var game = new Filemanager().newGame(factor)
+
   stage = new PrimaryStage {
     title = "Tornipuolustus"
     scene = new SceneWithParams(800, 600, game) {
@@ -88,7 +87,7 @@ object UIApp extends JFXApp {
       //Uuden pelin aloitus, pelin tallennus- ja lataus sekä poistumismetodien kutsut
       newGame.onAction = new EventHandler[ActionEvent] {
         override def handle(event: ActionEvent) {
-          game = new Filemanager().newGame
+          game = new Filemanager().newGame(factor)
         }
       }
       
@@ -96,12 +95,15 @@ object UIApp extends JFXApp {
         override def handle(event: ActionEvent) {
           val file = fileChooser.showOpenDialog(stage)
           if (file != null) {
-            game = new Filemanager().loadGame(file)
+            gc.clearRect( 0, 0, 600, 600)
+            game = new Filemanager().loadGame(file, factor)
             gameWindow.getChildren().clear()
-            gameWindow.getChildren().addAll(canvas)
-            gc.clearRect(0,0,600, 600)
             placeTiles()
-            
+            gameWindow.getChildren.addAll(canvas)
+            canvas.width.bind(gameWindow.width)
+            canvas.height.bind(gameWindow.height)
+            canvas.toFront()
+            canvas.setMouseTransparent(true)
           }
         }
       }
@@ -133,7 +135,7 @@ object UIApp extends JFXApp {
       }
       
       //Animaatioajastin, joka uudelleenpiirtää viholliset ja tornit ruudulle muutosten tapahtuessa
-      val timer = AnimationTimer { time =>
+      var timer = AnimationTimer { time =>
         gc.fill = Color.Black
         for (i <- game.getField.towers) {
           i.name match {
@@ -171,12 +173,14 @@ object UIApp extends JFXApp {
            tile.translateY = factor + x*factor*2
            if (tile.tower != 0) {
              val tower = new Tower(tile.translateX(), tile.translateY(), tile.tower)
-             game.getField.towers ::= tower
+             game.getField.towers = game.getField.towers :+ tower
            }
            tile.onMouseClicked = (me: MouseEvent) => {
-             if(letter == "T" && toggles.selectedToggle.isNotNull()()) {
+             if(letter == "T" && toggles.selectedToggle.isNotNull()() && tile.tower == 0) {
                val tower = new Tower(tile.translateX(), tile.translateY(), (toggles.selectedToggleProperty().get().getUserData + "").toInt)
-               game.getField.towers ::= tower
+               if (tile.tower == 0) tile.tower = (toggles.selectedToggleProperty().get().getUserData + "").toInt
+               game.getField.towers = game.getField.towers :+ tower
+               println(tile.tower)
              }
            }  
            tiles += tile
@@ -194,16 +198,16 @@ object UIApp extends JFXApp {
       buttonPane.children += towerButton3
       buttonPane.children += towerButton4
       buttonPane.setBackground(new Background(Array(new BackgroundFill(Color.Gray, CornerRadii.Empty, Insets.Empty))))
-      canvas.width.bind(gameWindow.width)
-      canvas.height.bind(gameWindow.height)      
+        
       gameWindow.getChildren.addAll(canvas)
+      canvas.width.bind(gameWindow.width)
+      canvas.height.bind(gameWindow.height)
+      canvas.toFront()
+      canvas.setMouseTransparent(true)
       rootPane.top = menuBar
       rootPane.left = buttonPane
       rootPane.center = gameWindow
-      canvas.toFront()
-      canvas.setMouseTransparent(true)
       root = rootPane
-      
       timer.start()
       
     }

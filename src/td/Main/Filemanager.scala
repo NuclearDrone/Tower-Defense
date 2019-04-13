@@ -2,6 +2,8 @@ package td
 
 import java.io._
 import td._
+import td.Main._
+
 class Filemanager {
   
   def saveGame(file: File, game: Gamestate, factor: Int) = {
@@ -36,7 +38,7 @@ class Filemanager {
     }
   }
   
-  def loadGame(file: File): Gamestate = {
+  def loadGame(file: File, factor: Int): Gamestate = {
     val input = new BufferedReader(new FileReader(file))
     val game = new Gamestate()
     try {
@@ -108,8 +110,8 @@ class Filemanager {
     game
   }
   
-  def newGame = {
-    this.loadGame(new File("data/DefaultField.txt"))
+  def newGame(factor: Int) = {
+    this.loadGame(new File("data/DefaultField.txt"), factor)
   }
   
 }
