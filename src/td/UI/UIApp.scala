@@ -41,44 +41,28 @@ import scalafx.scene.input.MouseEvent
 import scalafx.animation.AnimationTimer
 import scalafx.scene.control.ToggleButton
 import scalafx.scene.control.ToggleGroup
+import javafx.embed.swing.JFXPanel
+import scalafx.application.Platform
+import scalafx.stage.Stage
 
 object UIApp extends JFXApp {
   
-  private var enemies = List[Enemy]()
-  private var towers = List[Tower]()
   private var game = new Filemanager().newGame
   private val factor = 25
   
+  
   stage = new PrimaryStage {
     title = "Tornipuolustus"
-    scene = new Scene(800, 600) {
-      // Pelikentän ruudut Tileiksi, jotka voidaan piirtää. Ne myös sisältävät datan niissä jo olevista torneista.
+    scene = new SceneWithParams(800, 600, game) {
+      
       var tiles = Buffer[Tile]()
-      for {x <- 0 until game.getField.rows
-           y <- 0 until game.getField.cols} {
-         val tile = new Tile(game.getField.field(x)(y))
-         val letter = game.getField.field(x)(y).letter
-         tile.translateX = factor + y*factor*2
-         tile.translateY = factor + x*factor*2
-         if (tile.tower != 0) {
-           val tower = new Tower(tile.translateX(), tile.translateY(), tile.tower.toString)
-           towers ::= tower
-         }
-         tile.onMouseClicked = (me: MouseEvent) => {
-           if(letter == "T" && toggles.selectedToggle.isNotNull()()) {
-             val tower = new Tower(tile.translateX(), tile.translateY(), toggles.selectedToggleProperty().get().getUserData + "")
-             towers ::= tower
-           }
-         }
-         tiles += tile
-      }
-           
+      
       // Käyttöliittymän elementit
       val menuBar = new MenuBar
       val gameMenu = new Menu("Game")
-      val scoreMenu = new Menu(game.getScore)
-      val healthMenu = new Menu(game.getHealth)
-      val levelMenu = new Menu(game.getLevel)
+      val scoreMenu = new Menu("Score: " + game.getScore)
+      val healthMenu = new Menu("Health: " + game.getHealth)
+      val levelMenu = new Menu("Level: " + game.getLevel)
       val newGame = new MenuItem("New")
       val openGame = new MenuItem("Open")
       val saveGame = new MenuItem("Save")
@@ -97,7 +81,7 @@ object UIApp extends JFXApp {
       
       //Tiedoston valitsija pelin tallennus- ja latausmetodeille
       val fileChooser = new FileChooser {
-        title = "Open Game File"
+        title = "Choose a Game File"
         extensionFilters ++= Seq( new ExtensionFilter("Text Files", "*.txt"))
         initialDirectory = new File(System.getProperty("user.home"))
       }
@@ -113,6 +97,11 @@ object UIApp extends JFXApp {
           val file = fileChooser.showOpenDialog(stage)
           if (file != null) {
             game = new Filemanager().loadGame(file)
+            gameWindow.getChildren().clear()
+            gameWindow.getChildren().addAll(canvas)
+            gc.clearRect(0,0,600, 600)
+            placeTiles()
+            
           }
         }
       }
@@ -121,7 +110,7 @@ object UIApp extends JFXApp {
         override def handle(event: ActionEvent) {
           val file = fileChooser.showSaveDialog(stage)
           if (file != null) {
-            new Filemanager().saveGame(file, game)
+            new Filemanager().saveGame(file, game, factor)
           }
         }
       }
@@ -135,29 +124,29 @@ object UIApp extends JFXApp {
       
       toggles.toggles = List(towerButton1, towerButton2, towerButton3, towerButton4)
       for (i <- 0 until toggles.toggles.length) {
-        toggles.toggles(i).setUserData(i)
+        toggles.toggles(i).setUserData(i+1)
       }
       
       canvas.onMouseClicked = (me: MouseEvent) => {
-        enemies ::= new Enemy(me.x, me.y)
+        game.getField.enemies ::= new Enemy(me.x, me.y)
         println("" + me.x + " " + me.y )
       }
       
       //Animaatioajastin, joka uudelleenpiirtää viholliset ja tornit ruudulle muutosten tapahtuessa
       val timer = AnimationTimer { time =>
         gc.fill = Color.Black
-        for (i <- towers) {
+        for (i <- game.getField.towers) {
           i.name match {
-            case "0" =>
+            case 1 =>
               gc.fill = Color.Aqua
               gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
-            case "1" =>
+            case 2 =>
               gc.fill = Color.Green
               gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
-            case "2" =>
+            case 3 =>
               gc.fill = Color.Purple
               gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
-            case "3" =>
+            case 4 =>
               gc.fill = Color.Silver
               gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
             case x => 
@@ -167,12 +156,34 @@ object UIApp extends JFXApp {
         }
         
         gc.fill = Color.PaleGoldrenrod
-        for (i <- enemies) {
+        for (i <- game.getField.enemies) {
           gc.fillOval(i.x-factor/2, i.y-factor/2, factor, factor)
         }
       }
-      
-      
+      // Metodi joka muuttaa pelikentän ruudut käyttöliittymän Tile-elementeiksi. Ne myös sisältävät datan niissä jo olevista torneista.
+      def placeTiles() = {
+        tiles.clear()
+        for {x <- 0 until game.getField.rows
+             y <- 0 until game.getField.cols} {
+           val tile = new Tile(game.getField.field(x)(y))
+           val letter = game.getField.field(x)(y).letter
+           tile.translateX = factor + y*factor*2
+           tile.translateY = factor + x*factor*2
+           if (tile.tower != 0) {
+             val tower = new Tower(tile.translateX(), tile.translateY(), tile.tower)
+             game.getField.towers ::= tower
+           }
+           tile.onMouseClicked = (me: MouseEvent) => {
+             if(letter == "T" && toggles.selectedToggle.isNotNull()()) {
+               val tower = new Tower(tile.translateX(), tile.translateY(), (toggles.selectedToggleProperty().get().getUserData + "").toInt)
+               game.getField.towers ::= tower
+             }
+           }  
+           tiles += tile
+        }
+        tiles.foreach(gameWindow.getChildren.addAll(_))
+      }
+      placeTiles()
       gameMenu.items = List(newGame, openGame, saveGame, quitGame)
       menuBar.menus = List(gameMenu, scoreMenu, healthMenu, levelMenu)
       nextButton.minWidth(100)
@@ -185,11 +196,10 @@ object UIApp extends JFXApp {
       buttonPane.setBackground(new Background(Array(new BackgroundFill(Color.Gray, CornerRadii.Empty, Insets.Empty))))
       canvas.width.bind(gameWindow.width)
       canvas.height.bind(gameWindow.height)      
+      gameWindow.getChildren.addAll(canvas)
       rootPane.top = menuBar
       rootPane.left = buttonPane
       rootPane.center = gameWindow
-      gameWindow.getChildren.addAll(canvas)
-      tiles.foreach(gameWindow.getChildren.addAll(_))
       canvas.toFront()
       canvas.setMouseTransparent(true)
       root = rootPane
@@ -217,7 +227,7 @@ object UIApp extends JFXApp {
     this.children.addAll(text, image)
   }
   
-  
+  private class SceneWithParams(width: Int, length: Int, game: Gamestate) extends Scene(width, length)
   
   
   

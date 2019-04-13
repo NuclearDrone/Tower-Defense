@@ -4,8 +4,36 @@ import java.io._
 import td._
 class Filemanager {
   
-  def saveGame(file: File, game: Gamestate) = {
-    
+  def saveGame(file: File, game: Gamestate, factor: Int) = {
+    val output = new BufferedWriter(new FileWriter(file))
+    var i = 1
+    try {
+      output.write("DATA:")
+      output.newLine()
+      output.write(game.getScore + " " + game.getHealth + " " + game.getLevel)
+      output.newLine()
+      output.write("FIELD:")
+      output.newLine()
+      output.write(game.getField.rows + " " + game.getField.cols)
+      output.newLine()
+      for (x <- game.getField.field) {
+        for (y <- x) {
+          output.write(y.letter + " ")
+        }
+        output.newLine()
+      }
+      output.write("TOWERS:")
+      output.newLine()
+      for (x <- 1 to 4) {
+        output.write(x + ": " + game.getField.towers.filter(_.name == x).map(tower => ((tower.y - factor)/(factor*2)).toInt + "," + ((tower.x - factor)/(factor*2)).toInt).mkString(" "))
+        output.newLine()
+      }
+      output.write("END")
+    } catch {
+      case e:IOException => println("IOException caught: "+ e)
+    } finally {
+      output.close()
+    }
   }
   
   def loadGame(file: File): Gamestate = {
@@ -46,19 +74,21 @@ class Filemanager {
           
           case "TOWERS:" =>
             var towers = List[Array[(Int, Int)]]()
+            val emptyArray = Array[(Int, Int)]()
             var tower1 = input.readLine().drop(2).trim
-            if (tower1.nonEmpty) towers = towers :+ tower1.split(" ").map( x => (x.head.toInt ,x.last.toInt ))
+            if (tower1.nonEmpty) towers = towers :+ tower1.split(" ").map( x => (x.head.toInt ,x.last.toInt )) else towers = towers :+ emptyArray
             val tower2 = input.readLine().drop(2).trim
-            if (tower2.nonEmpty) towers = towers :+ tower2.split(" ").map( x => (x.head.toInt ,x.last.toInt ))
+            if (tower2.nonEmpty) towers = towers :+ tower2.split(" ").map( x => (x.head.toInt ,x.last.toInt )) else towers = towers :+ emptyArray
             val tower3 = input.readLine().drop(2).trim
-            if (tower3.nonEmpty) towers = towers :+ tower3.split(" ").map( x => (x.head.toInt ,x.last.toInt ))
+            if (tower3.nonEmpty) towers = towers :+ tower3.split(" ").map( x => (x.head.toInt ,x.last.toInt )) else towers = towers :+ emptyArray
             val tower4 = input.readLine().drop(2).trim
-            if (tower4.nonEmpty) towers = towers :+ tower4.split(" ").map( x => (x.head.toInt ,x.last.toInt ))
-            println(towers)
+            if (tower4.nonEmpty) towers = towers :+ tower4.split(" ").map( x => (x.head.toInt ,x.last.toInt )) else towers = towers :+ emptyArray
             var i = 1
             for (x <- towers) {
-              for(y <- x) {
-                game.getField.field(y._1-48)(y._2-48).setTower(i)
+              if (x.nonEmpty) {
+                for(y <- x) {
+                  game.getField.field(y._1-48)(y._2-48).setTower(i)
+                }
               }
               i += 1
             }
