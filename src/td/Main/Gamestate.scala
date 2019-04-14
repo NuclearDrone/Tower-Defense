@@ -1,8 +1,10 @@
 package td
 
 import td._
+import td.Main._
 
 class Gamestate {
+  val stageManager: Stagemanager = new Stagemanager()
   private var field:Field = null
   private var score = 0
   private var playerHealth = 100

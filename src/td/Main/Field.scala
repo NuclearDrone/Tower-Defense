@@ -10,6 +10,7 @@ class Field(r: Int = 10, c: Int = 10, data: Array[Array[Square]]) {
   val cols = c
   var enemies = List[Enemy]()
   var towers = List[Tower]()
+  def fieldWithPos = field.zipWithIndex.map(x => ( x._1.zipWithIndex, x._2))
 }
 
 trait Square {

@@ -84,6 +84,12 @@ object UIApp extends JFXApp {
         extensionFilters ++= Seq( new ExtensionFilter("Text Files", "*.txt"))
         initialDirectory = new File(System.getProperty("user.home"))
       }
+      nextButton.onAction = new EventHandler[ActionEvent] {
+        override def handle(event: ActionEvent) {
+          game.stageManager.nextStage(game, factor)
+        }
+      }
+      
       //Uuden pelin aloitus, pelin tallennus- ja lataus sekä poistumismetodien kutsut
       newGame.onAction = new EventHandler[ActionEvent] {
         override def handle(event: ActionEvent) {
@@ -161,6 +167,11 @@ object UIApp extends JFXApp {
         for (i <- game.getField.enemies) {
           gc.fillOval(i.x-factor/2, i.y-factor/2, factor, factor)
         }
+        
+        scoreMenu.text = "Score: " + game.getScore
+        healthMenu.text = "Health: " + game.getHealth
+        levelMenu.text = "Level: " + game.getLevel
+        
       }
       // Metodi joka muuttaa pelikentän ruudut käyttöliittymän Tile-elementeiksi. Ne myös sisältävät datan niissä jo olevista torneista.
       def placeTiles() = {
