@@ -10,7 +10,10 @@ class Field(r: Int = 10, c: Int = 10, data: Array[Array[Square]]) {
   val cols = c
   var enemies = List[Enemy]()
   var towers = List[Tower]()
-  def fieldWithPos = field.zipWithIndex.map(x => ( x._1.zipWithIndex, x._2))
+  def fieldWithPos = field.zipWithIndex.map(x => ( x._1.zipWithIndex, x._2)).map(x => x._1.map(y => (y._1, y._2, x._2)))
+  def getNeighbors(coords: (Int, Int)) = {
+    Array[(String, Some[(Square, Int, Int)])](("N", Some(fieldWithPos(coords._1-1)(coords._2))) , ("E", Some(fieldWithPos(coords._1)(coords._2+1))) , ("S", Some(fieldWithPos(coords._1+1)(coords._2))) , ("W", Some(fieldWithPos(coords._1)(coords._2-1))))
+  }
 }
 
 trait Square {
