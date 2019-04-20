@@ -49,10 +49,11 @@ object UIApp extends JFXApp {
 
   private val factor = 25
   private var game = new Filemanager().newGame(factor)
+  private val towerCost = 25
 
   stage = new PrimaryStage {
     title = "Tornipuolustus"
-    scene = new SceneWithParams(800, 600, game) {
+    scene = new Scene(800, 600) {
       
       var tiles = Buffer[Tile]()
       
@@ -78,22 +79,37 @@ object UIApp extends JFXApp {
       val canvas = new Canvas(600, 600)
       val gc = canvas.graphicsContext2D
       
-      //Tiedoston valitsija pelin tallennus- ja latausmetodeille
+      // Tiedoston valitsija pelin tallennus- ja latausmetodeille
       val fileChooser = new FileChooser {
         title = "Choose a Game File"
         extensionFilters ++= Seq( new ExtensionFilter("Text Files", "*.txt"))
         initialDirectory = new File(System.getProperty("user.home"))
       }
+      
+      // Seuraavan kierroksen aloittamismetodin kutsu. Näppäintä ei voi painaa kierroksen ollessa käynnissä.
       nextButton.onAction = new EventHandler[ActionEvent] {
         override def handle(event: ActionEvent) {
           game.stageManager.nextStage(game, factor)
         }
       }
       
-      //Uuden pelin aloitus, pelin tallennus- ja lataus sekä poistumismetodien kutsut
+      // Metodi joka siistii ruudun vanhan pelin jäänteistä. Uuden pelin ja pelin lataamisen yhteinen osa.
+      def cleanUpTheScreen() = {
+        gc.clearRect( 0, 0, canvas.getWidth(), canvas.getHeight())
+        gameWindow.getChildren().clear()
+        placeTiles()
+        gameWindow.getChildren.addAll(canvas)
+        canvas.width.bind(gameWindow.width)
+        canvas.height.bind(gameWindow.height)
+        canvas.toFront()
+        canvas.setMouseTransparent(true)
+      }
+      // Uuden pelin aloitus, pelin tallennus- ja lataus sekä poistumismetodien kutsut.
+      // Peliä ei voi tallentaa kierroksen ollessa käynnissä.
       newGame.onAction = new EventHandler[ActionEvent] {
         override def handle(event: ActionEvent) {
           game = new Filemanager().newGame(factor)
+          cleanUpTheScreen()
         }
       }
       
@@ -101,15 +117,8 @@ object UIApp extends JFXApp {
         override def handle(event: ActionEvent) {
           val file = fileChooser.showOpenDialog(stage)
           if (file != null) {
-            gc.clearRect( 0, 0, 600, 600)
             game = new Filemanager().loadGame(file, factor)
-            gameWindow.getChildren().clear()
-            placeTiles()
-            gameWindow.getChildren.addAll(canvas)
-            canvas.width.bind(gameWindow.width)
-            canvas.height.bind(gameWindow.height)
-            canvas.toFront()
-            canvas.setMouseTransparent(true)
+            cleanUpTheScreen()
           }
         }
       }
@@ -129,51 +138,65 @@ object UIApp extends JFXApp {
         }
       }
       
-      
+      // Lisää torninäppäimiin arvon kyseisen tornista, jonka näppäin voi antaa parametriksi eteenpäin.
       toggles.toggles = List(towerButton1, towerButton2, towerButton3, towerButton4)
       for (i <- 0 until toggles.toggles.length) {
         toggles.toggles(i).setUserData(i+1)
       }
       
-      canvas.onMouseClicked = (me: MouseEvent) => {
-        game.getField.enemies ::= new Enemy(me.x, me.y)
-        println("" + me.x + " " + me.y )
-      }
       
-      //Animaatioajastin, joka uudelleenpiirtää viholliset ja tornit ruudulle muutosten tapahtuessa
+      // Animaatioajastin, joka uudelleenpiirtää viholliset ja tornit ruudulle muutosten tapahtuessa.
+      // Ajastin hallitsee myös käyttöliittymän muita elementtejä, jos niitä tarvitsee muuttaa pelin edetessä.
       var timer = AnimationTimer { time =>
-        gc.fill = Color.Black
-        for (i <- game.getField.towers) {
-          i.name match {
-            case 1 =>
-              gc.fill = Color.Aqua
-              gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
-            case 2 =>
-              gc.fill = Color.Green
-              gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
-            case 3 =>
-              gc.fill = Color.Purple
-              gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
-            case 4 =>
-              gc.fill = Color.Silver
-              gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
-            case x => 
-              gc.fill = Color.Black
-              gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
+        if (game.getField.enemies.nonEmpty) {
+          nextButton.mouseTransparent = true
+          saveGame.disable = true
+        } else {
+          nextButton.mouseTransparent = false
+          saveGame.disable = false
+        }
+        if (game.getLost) {
+          buttonPane.getChildren().foreach(_.setMouseTransparent(true))
+          gc.drawImage(new Image( new FileInputStream("data/Lost.png")), 0, 0, canvas.getWidth(),canvas.getHeight() )
+        } else {
+          gc.clearRect( 0, 0, canvas.getWidth(), canvas.getHeight())
+          for (i <- game.getField.towers) {
+            i.name match {
+              case 1 =>
+                gc.fill = Color.LightSalmon
+                gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
+              case 2 =>
+                gc.fill = Color.Yellow
+                gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
+              case 3 =>
+                gc.fill = Color.Purple
+                gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
+              case 4 =>
+                gc.fill = Color.Aqua
+                gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
+              case x => 
+                gc.fill = Color.Black
+                gc.fillRect(i.x-factor/2, i.y-factor/2, factor, factor)
+            }
+            gc.fill = Color.Black
+            gc.fillText(i.getCD.toString, i.x-factor/2 + factor/5, i.y + factor/5, factor)
           }
+          
+          for (i <- game.getField.enemies) {
+            if (!i.done && i.getHealth > 0){
+              gc.fill = Color.PaleGoldrenrod
+              gc.fillOval(i.x-factor/2, i.y-factor/2, factor, factor)
+              gc.fill = Color.Black
+              gc.fillText(i.getHealth.toString, i.x-factor/2 + factor/5, i.y + factor/5, factor)
+            }
+          }
+          scoreMenu.text = "Score: " + game.getScore
+          healthMenu.text = "Health: " + game.getHealth
+          levelMenu.text = "Level: " + game.getLevel
         }
-        
-        gc.fill = Color.PaleGoldrenrod
-        for (i <- game.getField.enemies) {
-          gc.fillOval(i.x-factor/2, i.y-factor/2, factor, factor)
-        }
-        
-        scoreMenu.text = "Score: " + game.getScore
-        healthMenu.text = "Health: " + game.getHealth
-        levelMenu.text = "Level: " + game.getLevel
-        
       }
-      // Metodi joka muuttaa pelikentän ruudut käyttöliittymän Tile-elementeiksi. Ne myös sisältävät datan niissä jo olevista torneista.
+      // Metodi joka muuttaa pelikentän ruudut käyttöliittymän Tile-elementeiksi.
+      // Ne myös sisältävät datan niissä jo mahdollisesti olevista torneista.
       def placeTiles() = {
         tiles.clear()
         for {x <- 0 until game.getField.rows
@@ -187,12 +210,13 @@ object UIApp extends JFXApp {
              game.getField.towers = game.getField.towers :+ tower
            }
            tile.onMouseClicked = (me: MouseEvent) => {
-             if(letter == "T" && toggles.selectedToggle.isNotNull()() && tile.tower == 0) {
+             if(letter == "T" && toggles.selectedToggle.isNotNull()() && tile.tower == 0 && game.getScore >= towerCost) {
                val tower = new Tower(tile.translateX(), tile.translateY(), (toggles.selectedToggleProperty().get().getUserData + "").toInt)
                if (tile.tower == 0) tile.tower = (toggles.selectedToggleProperty().get().getUserData + "").toInt
                game.getField.towers = game.getField.towers :+ tower
-               println(tile.tower)
+               game.setScore(-towerCost)
              }
+             println(tile.tower)
            }  
            tiles += tile
         }
@@ -223,6 +247,8 @@ object UIApp extends JFXApp {
       
     }
   }
+  // Tile -luokka on kustomoitu StackPane, joka mukautuu sen mukaan, minkä tyyppisen kentän ruudun sille antaa
+  // parametriksi. Tilet luovat pelikentän käyttöliittymässä.
   private class Tile(tileType: Square) extends StackPane {
     var tower = tileType.tower
     style =  "" +
@@ -242,7 +268,6 @@ object UIApp extends JFXApp {
     this.children.addAll(text, image)
   }
   
-  private class SceneWithParams(width: Int, length: Int, game: Gamestate) extends Scene(width, length)
   
   
   

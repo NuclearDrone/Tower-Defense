@@ -5,8 +5,8 @@ import td._
 import td.Main._
 
 class Filemanager {
-  
-  def saveGame(file: File, game: Gamestate, factor: Int) = {
+  // Tallentaa pelin parametriksi annettuun tiedostoon ennaltamääritetyssä muodossa.
+  def saveGame(file: File, game: Gamestate, factor: Int): Unit = {
     val output = new BufferedWriter(new FileWriter(file))
     var i = 1
     try {
@@ -38,6 +38,8 @@ class Filemanager {
     }
   }
   
+  // Lukee parametriksi annetusta tiedostosta rivi kerrallaan dataa ja luo Gamestate -pelitilan sen pohjalta.
+  // Palauttaa pelitilan käyttöliittymälle valmiina.
   def loadGame(file: File, factor: Int): Gamestate = {
     val input = new BufferedReader(new FileReader(file))
     val game = new Gamestate()
@@ -54,7 +56,7 @@ class Filemanager {
             val gameLevel = gameData.drop(gameHealth.length + 1).drop(gameScore.length + 1).takeWhile(_ != ' ')
             
             game.setScore(gameScore.toInt)
-            game.setPlayerHealth(gameHealth.toInt)
+            game.setHealth(gameHealth.toInt)
             game.setLevel(gameLevel.toInt)
             
           case "FIELD:" =>
@@ -110,7 +112,8 @@ class Filemanager {
     game
   }
   
-  def newGame(factor: Int) = {
+  // Kutsuu loadGame -funktiota pelin vakiotiedostolla.
+  def newGame(factor: Int): Gamestate = {
     this.loadGame(new File("data/DefaultField.txt"), factor)
   }
   
