@@ -2,8 +2,8 @@ package td.Main
 import scala.collection.mutable.Buffer
 import scala.math._
 
-class Enemy(var x: Int, var y: Int, val path: Buffer[(Int, Int)], val speed: Int) {
-  private var health = 100
+class Enemy(var x: Int, var y: Int, val path: Buffer[(Int, Int)], val level: Int) {
+  private var health = 100 + level/10 * 100
   var hasMoved = false
   var readyToMove = false
   private var counter = 1

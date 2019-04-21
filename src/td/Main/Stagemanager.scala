@@ -59,11 +59,11 @@ class BattleHandler(game: Gamestate, path: Buffer[(Int, Int)], level: Int, facto
     val deletedEnemies = Buffer[Enemy]()
     var i = 0
     val interval = intervalFactor/(level + 4)
-    while(game.getHealth > 0 && game.getField.enemies != deletedEnemies) {
-      if (i % interval == 0 && game.getField.enemies.exists(!_.hasMoved) ) {
-        game.getField.enemies.find(!_.hasMoved).get.readyToMove = true
+    while(game.getHealth > 0 && game.getField.enemies.synchronized{game.getField.enemies != deletedEnemies && game.getField.enemies.size > deletedEnemies.size}) {
+      if (i % interval == 0 && game.getField.enemies.synchronized{game.getField.enemies.exists(!_.hasMoved)} ) {
+        game.getField.enemies.synchronized{game.getField.enemies.find(!_.hasMoved).get.readyToMove = true}
       }
-      for(x <- game.getField.enemies) {
+      for(x <- game.getField.enemies.synchronized{game.getField.enemies}) {
         if (x.getHealth <= 0 && x.readyToMove) {
           game.setScore(10)
           x.readyToMove = false
@@ -79,7 +79,7 @@ class BattleHandler(game: Gamestate, path: Buffer[(Int, Int)], level: Int, facto
         if(x.onCooldown) {
           x.passTime
         } else {
-          x.attack(game.getField.enemies, factor)
+          x.attack(game.getField.enemies.synchronized{game.getField.enemies}, factor)
         }
       }
       
@@ -90,7 +90,7 @@ class BattleHandler(game: Gamestate, path: Buffer[(Int, Int)], level: Int, facto
     if (game.getHealth <= 0) {
       game.setLost
     } else {
-      game.getField.enemies.clear()
+      game.getField.enemies.synchronized{game.getField.enemies.clear()}
       game.getField.towers.foreach(_.resetCD)
       game.setLevel(game.getLevel + 1)
     }

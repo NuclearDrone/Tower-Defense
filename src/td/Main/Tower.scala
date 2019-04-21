@@ -27,7 +27,7 @@ class Tower(val x: Double, val y: Double, val name: Int) {
   def setOnCooldown() = {
     cooldown = name match {
       case 1 => 50
-      case 2 => 400
+      case 2 => 900
       case 3 => 400
       case 4 => new Random().nextInt(1000) + 1000
     }
@@ -49,8 +49,8 @@ class Tower(val x: Double, val y: Double, val name: Int) {
     if (target.nonEmpty) {
       name match {
         case 1 => target.get.setHealth(target.get.getHealth - 10)
-        case 2 => target.get.setHealth(target.get.getHealth - 40)
-        case 3 => target.get.setHealth(target.get.getHealth - 30)
+        case 2 => target.get.setHealth(target.get.getHealth - 35)
+        case 3 => target.get.setHealth(target.get.getHealth - 25)
         case 4 => target.get.setHealth(target.get.getHealth - 90)
       }
       setOnCooldown()

@@ -148,12 +148,14 @@ object UIApp extends JFXApp {
       // Animaatioajastin, joka uudelleenpiirtää viholliset ja tornit ruudulle muutosten tapahtuessa.
       // Ajastin hallitsee myös käyttöliittymän muita elementtejä, jos niitä tarvitsee muuttaa pelin edetessä.
       var timer = AnimationTimer { time =>
-        if (game.getField.enemies.nonEmpty) {
+        if (game.getField.enemies.synchronized{game.getField.enemies.nonEmpty}) {
           nextButton.mouseTransparent = true
-          saveGame.disable = true
+          gameMenu.items.foreach(_.disable = true)
+          tiles.foreach(_.mouseTransparent = true)
         } else {
           nextButton.mouseTransparent = false
-          saveGame.disable = false
+          gameMenu.items.foreach(_.disable = false)
+          tiles.foreach(_.mouseTransparent = false)
         }
         if (game.getLost) {
           buttonPane.getChildren().foreach(_.setMouseTransparent(true))
@@ -182,7 +184,7 @@ object UIApp extends JFXApp {
             gc.fillText(i.getCD.toString, i.x-factor/2 + factor/5, i.y + factor/5, factor)
           }
           
-          for (i <- game.getField.enemies) {
+          for (i <- game.getField.enemies.synchronized{game.getField.enemies}) {
             if (!i.done && i.getHealth > 0){
               gc.fill = Color.PaleGoldrenrod
               gc.fillOval(i.x-factor/2, i.y-factor/2, factor, factor)

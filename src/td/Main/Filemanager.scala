@@ -80,18 +80,18 @@ class Filemanager {
             var towers = List[Array[(Int, Int)]]()
             val emptyArray = Array[(Int, Int)]()
             var tower1 = input.readLine().drop(2).trim
-            if (tower1.nonEmpty) towers = towers :+ tower1.split(" ").map( x => (x.head.toInt ,x.last.toInt )) else towers = towers :+ emptyArray
+            if (tower1.nonEmpty) towers = towers :+ tower1.split(" ").map(x => x.split(",")).map(x => (x.head.toInt, x.last.toInt)) else towers = towers :+ emptyArray
             val tower2 = input.readLine().drop(2).trim
-            if (tower2.nonEmpty) towers = towers :+ tower2.split(" ").map( x => (x.head.toInt ,x.last.toInt )) else towers = towers :+ emptyArray
+            if (tower2.nonEmpty) towers = towers :+ tower2.split(" ").map(x => x.split(",")).map(x => (x.head.toInt, x.last.toInt)) else towers = towers :+ emptyArray
             val tower3 = input.readLine().drop(2).trim
-            if (tower3.nonEmpty) towers = towers :+ tower3.split(" ").map( x => (x.head.toInt ,x.last.toInt )) else towers = towers :+ emptyArray
+            if (tower3.nonEmpty) towers = towers :+ tower3.split(" ").map(x => x.split(",")).map(x => (x.head.toInt, x.last.toInt)) else towers = towers :+ emptyArray
             val tower4 = input.readLine().drop(2).trim
-            if (tower4.nonEmpty) towers = towers :+ tower4.split(" ").map( x => (x.head.toInt ,x.last.toInt )) else towers = towers :+ emptyArray
+            if (tower4.nonEmpty) towers = towers :+ tower4.split(" ").map(x => x.split(",")).map(x => (x.head.toInt, x.last.toInt)) else towers = towers :+ emptyArray
             var i = 1
             for (x <- towers) {
               if (x.nonEmpty) {
                 for(y <- x) {
-                  game.getField.field(y._1-48)(y._2-48).setTower(i)
+                  game.getField.field(y._1)(y._2).setTower(i)
                 }
               }
               i += 1
