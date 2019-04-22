@@ -160,6 +160,8 @@ object UIApp extends JFXApp {
         if (game.getLost) {
           buttonPane.getChildren().foreach(_.setMouseTransparent(true))
           gc.drawImage(new Image( new FileInputStream("data/Lost.png")), 0, 0, canvas.getWidth(),canvas.getHeight() )
+          gameMenu.items.foreach(_.disable = false)
+          saveGame.disable = true
         } else {
           gc.clearRect( 0, 0, canvas.getWidth(), canvas.getHeight())
           for (i <- game.getField.towers) {
@@ -218,7 +220,6 @@ object UIApp extends JFXApp {
                game.getField.towers = game.getField.towers :+ tower
                game.setScore(-towerCost)
              }
-             println(tile.tower)
            }  
            tiles += tile
         }

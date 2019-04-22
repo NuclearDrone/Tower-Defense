@@ -16,6 +16,7 @@ class Enemy(var x: Int, var y: Int, val path: Buffer[(Int, Int)], val level: Int
   private def getCounter = min(path.length - 1, counter)
   
   
+  // Liikuttaa vihollista yhden pikselin verran polun suuntaan.
   def move() = {
     hasMoved = true
     if (path.head == (x, y)) {

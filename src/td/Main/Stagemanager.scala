@@ -4,6 +4,7 @@ import td._
 import td.Main._
 import scala.collection.mutable.Buffer
 import scala.util.Random
+import scala.math._
 
 class Stagemanager {
   // Vakio vihollisten määrälle per taso.
@@ -34,7 +35,6 @@ class Stagemanager {
     } catch {
       case e: IllegalArgumentException => println(e)
     }
-    println(path.last)
     path.map(x => (factor + x._1*factor*2, factor + x._2*factor*2))
   }
   
@@ -54,18 +54,19 @@ class BattleHandler(game: Gamestate, path: Buffer[(Int, Int)], level: Int, facto
   // Vakiot vihollisten liikkellelähtemisen väliajoille ja vihollisten etenemisnopeudelle
   private val intervalFactor = 1000
   private val threadSleepTime = 5
+  private val scorePerKill = 10
   
   def run() = {
     val deletedEnemies = Buffer[Enemy]()
     var i = 0
-    val interval = intervalFactor/(level + 4)
+    val interval = max(intervalFactor/(level + 4), 1)
     while(game.getHealth > 0 && game.getField.enemies.synchronized{game.getField.enemies != deletedEnemies && game.getField.enemies.size > deletedEnemies.size}) {
       if (i % interval == 0 && game.getField.enemies.synchronized{game.getField.enemies.exists(!_.hasMoved)} ) {
         game.getField.enemies.synchronized{game.getField.enemies.find(!_.hasMoved).get.readyToMove = true}
       }
       for(x <- game.getField.enemies.synchronized{game.getField.enemies}) {
         if (x.getHealth <= 0 && x.readyToMove) {
-          game.setScore(10)
+          game.setScore(scorePerKill)
           x.readyToMove = false
           deletedEnemies += x
         } 

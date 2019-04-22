@@ -105,7 +105,7 @@ class Filemanager {
       
     } catch {
       case e: IOException => println("IOException caught: " + e)
-      //case x: Throwable => println("Exception caught: " + x)
+      case x: Throwable => println("Exception caught: " + x)
     } finally {
       input.close()
     }

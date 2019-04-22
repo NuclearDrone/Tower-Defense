@@ -24,6 +24,7 @@ class Tower(val x: Double, val y: Double, val name: Int) {
   def passTime = cooldown -= 1
   def onCooldown = cooldown != 0
   
+  // Laittaa tornin hyökkäksen tauolle.
   def setOnCooldown() = {
     cooldown = name match {
       case 1 => 50
@@ -35,6 +36,7 @@ class Tower(val x: Double, val y: Double, val name: Int) {
   def getCD = cooldown
   def resetCD = cooldown = 0
   
+  // Palauttaa totuusarvon sen perusteella, onko vihollinen kantamalla.
   def inRange(e: Enemy, factor: Int): Boolean = {
     name match {
       case 1 => e.x >= factor * 2 && abs(e.x - this.x) <= factor * 3 && abs(e.y - this.y) <= factor * 3
@@ -43,7 +45,7 @@ class Tower(val x: Double, val y: Double, val name: Int) {
       case 4 => e.x >= factor * 2
     }
   }
-  
+  // Hyökkää ensimmäiseen viholliseen, joka on kantamalla.
   def attack(enemies: Buffer[Enemy], factor: Int) = {
     val target = enemies.find( x => inRange(x, factor) && x.readyToMove )
     if (target.nonEmpty) {
